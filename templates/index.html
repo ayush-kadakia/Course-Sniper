@@ -47,9 +47,19 @@
 				<div class="container-contact1-form-btn">
 					<input type="Submit" class="contact1-form-btn">
 				</div>
+
+				{% with messages = get_flashed_messages() %}
+					{% if messages %}
+						{% for message in messages %}
+							<center><p><br/>{{ message }}</p></center>
+						{% endfor %}
+					{% endif %}
+				{% endwith %}
+
 			</form>
 		</div>
 	</div>
+
 
 
 </body>
