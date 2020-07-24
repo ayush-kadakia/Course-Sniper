@@ -38,6 +38,53 @@ class LinkedList:
   
         last.next =  new_node
 
+    def searchIndex(self, x): 
+  
+        current = self.head 
+  
+        while current != None: 
+            if current.index == x: 
+                return current
+              
+            current = current.next
+          
+        return None 
+
+    def searchPhone(self, x): 
+  
+        current = self.head 
+  
+        while current != None: 
+            if current.phone == x: 
+                return True 
+              
+            current = current.next
+          
+        return False 
+
+    def deleteNode(self, i, p):  
+          
+        temp = self.head  
+  
+        if (temp is not None):  
+            if (temp.index == i and temp.phone == p):  
+                self.head = temp.next
+                temp = None
+                return
+    
+        while(temp is not None):  
+            if temp.index == i and temp.phone == p:  
+                break
+            prev = temp  
+            temp = temp.next
+  
+        if(temp == None):  
+            return
+  
+        prev.next = temp.next
+  
+        temp = None
+
 courses = LinkedList()
 
 def script(index, phone):
@@ -45,7 +92,7 @@ def script(index, phone):
     status = True
     while(status):
         response = requests.get("http://sis.rutgers.edu/soc/api/courses.gzip?campus=NB&year=2020&term=9&level=U")
-        print("checking")
+        print("checking " + index)
         data = response.json()
         for thing in data:
             for key, value in thing.items():
@@ -67,17 +114,49 @@ def script(index, phone):
                                     to= phone
                                     )
                                     print (index + 'end loop')
+                                    courses.deleteNode(index, phone)
                                     return currStatus
 
+def chkIndex(index):
+    if len(index) == 5:
+        try: 
+            int(index)
+            return True
+        except ValueError:
+            return False
+
+def chkPhone(phone):
+    try: 
+        int(phone)
+        return True
+    except ValueError:
+        return False
+
+def chkDupe(index, phone):
+    something = courses.searchIndex(index)
+    if something is not None and something.phone == phone:
+        return True
+    return False
+
+        
 @app.route("/", methods=['POST'])
 def addToLL():
     index = request.form['index']
     phone = request.form['phone']
-    courses.append(index, phone)
-    p = Process(target=script, args=(index, phone,))
-    p.start()
-    flash('Added index:' + index + ' to watch list!')
-    return redirect(url_for('hello'))    
+
+    if chkIndex(index) and chkPhone(phone):
+        if chkDupe(index, phone) == False:
+            courses.append(index, phone)
+            p = Process(target=script, args=(index, phone,))
+            p.start()
+            flash('Added index:' + index + ' to watch list!')
+            return redirect(url_for('hello'))
+        else:
+            flash('Already being tracked')
+            return redirect(url_for('hello'))          
+    else:
+        flash('Invalid Index or Phone')
+        return redirect(url_for('hello'))  
 
 @app.route("/")
 def hello():
